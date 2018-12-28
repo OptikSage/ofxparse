@@ -445,9 +445,9 @@ class OfxParser(object):
         invstmtrs_ofx = ofx.findAll('invstmtrs')
         if invstmtrs_ofx:
             ofx_obj.accounts += cls.parseInvstmtrs(invstmtrs_ofx)
-            seclist_ofx = ofx.find('seclist')
-            if seclist_ofx:
-                ofx_obj.security_list = cls.parseSeclist(seclist_ofx)
+            seclistset_ofx = ofx.findAll('seclist')
+            if seclistset_ofx:
+                ofx_obj.security_list = cls.parseSeclist(seclistset_ofx)
             else:
                 ofx_obj.security_list = None
 
@@ -559,29 +559,30 @@ class OfxParser(object):
         return ret
 
     @classmethod
-    def parseSeclist(cls, seclist_ofx):
+    def parseSeclist(cls, seclistset_ofx):
         securityList = []
-        for secinfo_ofx in seclist_ofx.findAll('secinfo'):
-            uniqueid_tag = secinfo_ofx.find('uniqueid')
-            name_tag = secinfo_ofx.find('secname')
-            ticker_tag = secinfo_ofx.find('ticker')
-            memo_tag = secinfo_ofx.find('memo')
-            if uniqueid_tag and name_tag:
-                try:
-                    ticker = ticker_tag.contents[0].strip()
-                except AttributeError:
-                    # ticker can be empty
-                    ticker = None
-                try:
-                    memo = memo_tag.contents[0].strip()
-                except AttributeError:
-                    # memo can be empty
-                    memo = None
-                securityList.append(
-                    Security(uniqueid_tag.contents[0].strip(),
-                             name_tag.contents[0].strip(),
-                             ticker,
-                             memo))
+        for seclist_ofx in seclistset_ofx:
+            for secinfo_ofx in seclist_ofx.findAll('secinfo'):
+                uniqueid_tag = secinfo_ofx.find('uniqueid')
+                name_tag = secinfo_ofx.find('secname')
+                ticker_tag = secinfo_ofx.find('ticker')
+                memo_tag = secinfo_ofx.find('memo')
+                if uniqueid_tag and name_tag:
+                    try:
+                        ticker = ticker_tag.contents[0].strip()
+                    except AttributeError:
+                        # ticker can be empty
+                        ticker = None
+                    try:
+                        memo = memo_tag.contents[0].strip()
+                    except AttributeError:
+                            # memo can be empty
+                        memo = None
+                    securityList.append(
+                        Security(uniqueid_tag.contents[0].strip(),
+                                 name_tag.contents[0].strip(),
+                                 ticker,
+                                 memo))
         return securityList
 
     @classmethod
